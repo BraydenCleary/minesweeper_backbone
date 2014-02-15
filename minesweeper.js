@@ -5,7 +5,8 @@ app.Board = Backbone.View.extend({
   indicesOfMines: [],
 
   initialize: function(){
-    //call function
+    this.totalTileCount = this.options.rowLength * this.options.rowLength
+    this.setNeighboringTileData()
   },
 
   render: function(){
@@ -30,32 +31,44 @@ app.Board = Backbone.View.extend({
     return this.indicesOfMines
   },
 
-  setSomething: function(){
+  setNeighboringTileData: function(){
     this.collection.each(function(tile, index){
+      neighboringTiles = [
+        {topLeft: index-this.options.rowLength-1},
+        {top: index-this.options.rowLength},
+        {topRight: index-this.options.rowLength+1},
+        {left: index-1},
+        {right: index+1},
+        {bottomLeft: index+this.options.rowLength -1},
+        {bottom: index+this.options.rowLength},
+        {bottomRight: index+this.options.rowLength +1}
+      ]
+      neighboringTiles = _.filter(neighboringTiles, function(neighboringTile){
+        neighboringIndex = _.values(neighboringTile)[0]
+        if (index % this.options.rowLength == 0){
+          return 0 <= neighboringIndex  &&  neighboringIndex < this.totalTileCount && (neighboringIndex+1) % this.options.rowLength != 0
+        } else if ((index+1) % this.options.rowLength == 0){
+          return 0 <= neighboringIndex  &&  neighboringIndex < this.totalTileCount && neighboringIndex % this.options.rowLength != 0
+        } else {
+          return 0 <= neighboringIndex  &&  neighboringIndex < this.totalTileCount
+        }
+      }, this)
 
-    })
+      var neighboringInfo = new Backbone.Model({})
+      _.each(neighboringTiles, function(neighboringTile){
+        neighboringInfo.set(_.keys(neighboringTile)[0], this.collection.at(_.values(neighboringTile)[0]).get("type"))
+      }, this)
+
+      tile.set("neighboringInfo", neighboringInfo)
+      tile.set("mineCount", tile.mineCount())
+    }, this)
   }
 })
-
-//hardcoding in 8x8
-//Indicies I care about for each tile 1 +8 -1 +9 +7 -9 -8 -7
-
-/* var neighboringInfo = Backbone.Model({
-    topLeft: 'mine',
-    top: 'land',
-    topRight: 'land',
-    left: 'land',
-    right: 'land'
-    bottomLeft: 'mine',
-    bottom: 'land',
-    bottomRight: 'land'
-// });
-*/
 
 app.TileView = Backbone.View.extend({
   tagName: 'div',
   className: 'tile',
-  template: _.template("<div class='<%= state %> <%= type %>'></div>"),
+  template: _.template("<div class='<%= state %> <%= type %>'><%= mineCount %></div>"),
 
   events: {
     "click": "tileClicked"
@@ -79,6 +92,12 @@ app.TileView = Backbone.View.extend({
 app.Tile = Backbone.Model.extend({
   defaults: {
     state: "untouched"
+  },
+
+  mineCount: function(){
+    return _.filter(_.values(this.get("neighboringInfo").attributes), function(type){
+      return type == "mine"
+    }).length
   }
 })
 
