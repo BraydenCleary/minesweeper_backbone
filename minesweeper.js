@@ -1,12 +1,28 @@
 var app = app || {};
 
+app.vent = _.extend({}, Backbone.Events);
+
 app.Board = Backbone.View.extend({
   el: '.board',
-  indicesOfMines: [],
 
   initialize: function(){
     this.totalTileCount = this.options.rowLength * this.options.rowLength
     this.setNeighboringTileData()
+    app.vent.on("tileClicked", this.tileClicked, this)
+  },
+
+  tileClicked: function(cid){
+    var tile = this.collection.get(cid)
+    if (tile.get("type") == "mine"){
+      alert("you lose!")
+    }
+    else if (tile.get("type") == "land"){
+      if (tile.get("mineCount") == 0){
+        _.each(tile.get("neighboringInfo").get("neighboringCids"), function(cid){
+          app.vent.trigger("tileClicked:" + cid, cid);
+        });
+      }
+    }
   },
 
   render: function(){
@@ -20,15 +36,6 @@ app.Board = Backbone.View.extend({
       model: tile
     });
     this.$el.append(tileView.render().el)
-  },
-
-  gatherIndicesOfMines: function(){
-    this.collection.each(function(tile, index){
-      if (tile.get("type") == "mine") {
-        this.indicesOfMines.push(index)
-      }
-    }, this);
-    return this.indicesOfMines
   },
 
   setNeighboringTileData: function(){
@@ -55,10 +62,13 @@ app.Board = Backbone.View.extend({
       }, this)
 
       var neighboringInfo = new Backbone.Model({})
+      var neighboringCids = [];
       _.each(neighboringTiles, function(neighboringTile){
         neighboringInfo.set(_.keys(neighboringTile)[0], this.collection.at(_.values(neighboringTile)[0]).get("type"))
+        neighboringCids.push(this.collection.at(_.values(neighboringTile)[0]).cid)
       }, this)
 
+      neighboringInfo.set("neighboringCids", neighboringCids)
       tile.set("neighboringInfo", neighboringInfo)
       tile.set("mineCount", tile.mineCount())
     }, this)
@@ -71,7 +81,7 @@ app.TileView = Backbone.View.extend({
   template: _.template("<div class='<%= state %> <%= type %>'><%= mineCount %></div>"),
 
   events: {
-    "click": "tileClicked"
+    "click": "triggerClick"
   },
 
   render: function(){
@@ -79,7 +89,24 @@ app.TileView = Backbone.View.extend({
     return this;
   },
 
-  tileClicked: function(){
+  initialize: function(){
+    app.vent.on("tileClicked:" + this.model.cid, this.triggerClick, this)
+  },
+
+  triggerClick: function(cid){
+    app.vent.trigger("tileClicked", this.model.cid)
+    if (cid == this.model.cid){
+      this.flipTile()
+    }
+  },
+
+  // tileClicked: function(cid){
+  //   if (cid == this.model.cid){
+  //     this.flipTile()
+  //   }
+  // },
+
+  flipTile: function(){
     if (this.model.get("type") == "mine"){
       this.model.set("state", "exploded")
     } else {
