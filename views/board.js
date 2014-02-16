@@ -84,7 +84,7 @@ app.Board = Backbone.View.extend({
   youLose: function(){
     alert('You lose!');
     app.vent.trigger("loser");
-    this.$el.prepend("<div class='loser'>You lose. Try again!</div>")
+    this.$el.prepend("<div class='loser'>You lose. Try again!</div>");
   },
 
   youWin: function(){
