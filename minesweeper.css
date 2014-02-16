@@ -1,8 +1,8 @@
 .tile{
-  width: 11%;
+  width: 12.375%;
   height: 50px;
-  border: 2px solid black;
   display: inline-block;
+  outline: 1px solid black;
 }
 
 .tile > div {
