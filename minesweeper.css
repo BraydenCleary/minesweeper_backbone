@@ -11,16 +11,29 @@
   text-align: center;
 }
 
-.mine{
-  background-color: red;
-}
-
 .flipped{
-  background-color: green;
+  color: black;
 }
 
 .exploded{
-  border: 5px solid pink;
+  outline: 5px solid pink;
+}
+
+.untouched{
+  color: white;
+}
+
+.flagged{
+  background-color: blue;
+  color: blue;
+}
+
+.winner{
+  color: green;
+}
+
+.loser{
+  color: red;
 }
 
 

@@ -14,9 +14,16 @@ app.TileView = Backbone.View.extend({
 
   initialize: function(){
     this.listenTo(this.model, 'change', this.render);
+    //refactor!
+    app.vent.on("winner", this.gameOver)
+    app.vent.on( "loser", this.gameOver)
   },
 
-  triggerClick: function(){
-    app.vent.trigger("tileClicked", this.model.cid);
+  triggerClick: function(e){
+    app.vent.trigger("tileClicked", this.model.cid, e.altKey);
+  },
+
+  gameOver: function(){
+    this.unbind();
   }
 })

@@ -17,7 +17,13 @@ app.resetGame = function(){
     app.tilesCollection.add(new app.Tile({type: "mine"}));
   })
 
-  board = new app.Board({collection: app.tilesCollection.reset(app.tilesCollection.shuffle()), rowLength: rowLength});
+  board = new app.Board({
+    collection: app.tilesCollection.reset(app.tilesCollection.shuffle()),
+    rowLength: rowLength,
+    landCount: landCount,
+    mineCount: mineCount
+  });
+
   board.render();
   $('.tile').css('width', 100/rowLength + "%")
 }
@@ -29,7 +35,15 @@ $(function(){
   app.tilesCollection = new Backbone.Collection();
 
   $('#row-length, #mine-count').on('change', function(){
-    app.resetGame()
+    app.resetGame();
+  })
+
+  $('#reset').click(function(){
+    app.resetGame();
+  })
+
+  $('#check-board').click(function(){
+    app.vent.trigger('checkBoard')
   })
 
   app.resetGame();

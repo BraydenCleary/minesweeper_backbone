@@ -1,30 +1,76 @@
 app.Board = Backbone.View.extend({
   el: '.board',
 
+  flippedCount: 0,
+
   initialize: function(){
     this.totalTileCount = this.options.rowLength * this.options.rowLength;
     this.setNeighboringTileData();
     app.vent.on("tileClicked", this.tileClicked, this);
+    app.vent.on("checkBoard", this.checkBoard, this);
   },
 
-  tileClicked: function(cid){
+  tileClicked: function(cid, altKeyPressed){
     var tile = this.collection.get(cid)
     if (tile.get("state") == "flipped"){
       return false;
     } else{
-      tile.flip();
-      if (tile.get("mineCount") == 0){
-        _.each(tile.get("neighboringInfo").get("neighboringCids"), function(cid){
-          this.tileClicked(cid);
-        }, this);
+      if (altKeyPressed){
+        tile.flag();
+        this.flaggedCount += 1;
+      } else {
+        if (tile.flip() == "flipped"){
+          this.flippedCount += 1;
+          if (this.checkStatus()){
+            return
+          } else{
+            if (tile.get("mineCount") == 0){
+              _.each(tile.get("neighboringInfo").get("neighboringCids"), function(cid){
+                this.tileClicked(cid);
+              }, this);
+            }
+          }
+        } else{
+          this.youLose();
+        }
       }
     }
+  },
+
+  checkBoard: function(){
+    if (this.flaggedMineCount() == this.options.mineCount){
+      this.youWin();
+    } else{
+      this.youLose();
+    }
+  },
+
+  flaggedMineCount: function(){
+    return this.collection.where({type: "mine", state: "flagged"}).length
   },
 
   render: function(){
     this.collection.each(function(tile){
       this.renderTile(tile);
     }, this);
+  },
+
+  checkStatus: function(){
+    if (this.flippedCount == this.options.landCount) {
+      this.youWin();
+    }
+  },
+
+  youLose: function(){
+    alert('You lose!');
+    app.vent.trigger("loser");
+    this.$el.prepend("<div class='loser'>You lose. Try again!</div>")
+  },
+
+  youWin: function(){
+    alert('You win!');
+    app.vent.trigger("winner");
+    this.$el.prepend("<div class='winner'>You win!</div>")
   },
 
   renderTile: function(tile){
