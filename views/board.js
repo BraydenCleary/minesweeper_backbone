@@ -10,6 +10,19 @@ app.Board = Backbone.View.extend({
     app.vent.on("checkBoard", this.checkBoard, this);
   },
 
+  render: function(){
+    this.collection.each(function(tile){
+      this.renderTile(tile);
+    }, this);
+  },
+
+  renderTile: function(tile){
+    var tileView = new app.TileView({
+      model: tile
+    });
+    this.$el.append(tileView.render().el);
+  },
+
   tileClicked: function(cid, altKeyPressed){
     var tile = this.collection.get(cid)
     if (tile.alreadyFlipped()){
@@ -61,12 +74,6 @@ app.Board = Backbone.View.extend({
     return this.collection.where({type: "mine", state: "flagged"}).length
   },
 
-  render: function(){
-    this.collection.each(function(tile){
-      this.renderTile(tile);
-    }, this);
-  },
-
   isWinner: function(){
     if (this.flippedCount == this.options.landCount) {
       this.youWin();
@@ -84,13 +91,6 @@ app.Board = Backbone.View.extend({
     alert('You win!');
     app.vent.trigger("winner");
     this.$el.prepend("<div class='winner'>You win!</div>")
-  },
-
-  renderTile: function(tile){
-    var tileView = new app.TileView({
-      model: tile
-    });
-    this.$el.append(tileView.render().el);
   },
 
   setNeighboringTileData: function(){
