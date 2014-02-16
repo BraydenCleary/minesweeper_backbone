@@ -58,6 +58,7 @@ app.Board = Backbone.View.extend({
   checkStatus: function(){
     if (this.flippedCount == this.options.landCount) {
       this.youWin();
+      return true;
     }
   },
 
