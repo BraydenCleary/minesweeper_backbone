@@ -13,14 +13,14 @@ app.Board = Backbone.View.extend({
 
   tileClicked: function(cid){
     var tile = this.collection.get(cid)
-    if (tile.get("type") == "mine"){
-      alert("you lose!")
-    }
-    else if (tile.get("type") == "land"){
+    if (tile.get("state") == "flipped"){
+      return
+    } else{
+      tile.flip();
       if (tile.get("mineCount") == 0){
         _.each(tile.get("neighboringInfo").get("neighboringCids"), function(cid){
-          app.vent.trigger("tileClicked:" + cid, cid);
-        });
+          this.tileClicked(cid);
+        }, this);
       }
     }
   },
@@ -90,29 +90,11 @@ app.TileView = Backbone.View.extend({
   },
 
   initialize: function(){
-    app.vent.on("tileClicked:" + this.model.cid, this.triggerClick, this)
+    this.listenTo(this.model, 'change', this.render);
   },
 
-  triggerClick: function(cid){
+  triggerClick: function(){
     app.vent.trigger("tileClicked", this.model.cid)
-    if (cid == this.model.cid){
-      this.flipTile()
-    }
-  },
-
-  // tileClicked: function(cid){
-  //   if (cid == this.model.cid){
-  //     this.flipTile()
-  //   }
-  // },
-
-  flipTile: function(){
-    if (this.model.get("type") == "mine"){
-      this.model.set("state", "exploded")
-    } else {
-      this.model.set("state", "flipped")
-    }
-    this.render();
   }
 })
 
@@ -125,6 +107,14 @@ app.Tile = Backbone.Model.extend({
     return _.filter(_.values(this.get("neighboringInfo").attributes), function(type){
       return type == "mine"
     }).length
+  },
+
+  flip: function(){
+    if (this.get("type") == "mine"){
+      this.set("state", "exploded");
+    } else {
+      this.set("state", "flipped");
+    }
   }
 })
 
