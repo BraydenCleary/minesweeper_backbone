@@ -14,7 +14,7 @@ app.TileView = Backbone.View.extend({
 
   initialize: function(){
     this.listenTo(this.model, 'change', this.render);
-    //refactor!
+    //TODO: refactor
     app.vent.on("winner", this.gameOver)
     app.vent.on( "loser", this.gameOver)
   },

@@ -12,10 +12,10 @@ app.Tile = Backbone.Model.extend({
   flip: function(){
     if (this.get("type") == "mine"){
       this.set("state", "exploded");
-      return "exploded";
+      return false;
     } else {
       this.set("state", "flipped");
-      return "flipped";
+      return true;
     }
   },
 
@@ -25,5 +25,13 @@ app.Tile = Backbone.Model.extend({
     } else {
       this.set("state", "flagged");
     }
+  },
+
+  alreadyFlipped: function(){
+    return this.get("state") == "flipped";
+  },
+
+  noAdjacentMines: function(){
+    return this.get("mineCount") == 0
   }
 })

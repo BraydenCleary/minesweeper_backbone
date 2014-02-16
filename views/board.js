@@ -12,29 +12,41 @@ app.Board = Backbone.View.extend({
 
   tileClicked: function(cid, altKeyPressed){
     var tile = this.collection.get(cid)
-    if (tile.get("state") == "flipped"){
+    if (tile.alreadyFlipped()){
       return false;
-    } else{
+    } else {
       if (altKeyPressed){
-        tile.flag();
-        this.flaggedCount += 1;
+        this.handleAltClick(tile);
       } else {
-        if (tile.flip() == "flipped"){
-          this.flippedCount += 1;
-          if (this.checkStatus()){
-            return
-          } else{
-            if (tile.get("mineCount") == 0){
-              _.each(tile.get("neighboringInfo").get("neighboringCids"), function(cid){
-                this.tileClicked(cid);
-              }, this);
-            }
-          }
-        } else{
-          this.youLose();
-        }
+        this.handleStandardClick(tile);
       }
     }
+  },
+
+  handleAltClick: function(tile){
+    tile.flag();
+    this.flaggedCount += 1;
+  },
+
+  handleStandardClick: function(tile){
+    if (tile.flip()){
+      this.flippedCount += 1;
+      if (this.isWinner()){
+        return
+      } else {
+        if (tile.noAdjacentMines()){
+          this.clickAdjacentmines(tile);
+        }
+      }
+    } else{
+      this.youLose();
+    }
+  },
+
+  clickAdjacentmines: function(tile){
+    _.each(tile.get("neighboringInfo").get("neighboringCids"), function(cid){
+      this.tileClicked(cid);
+    }, this);
   },
 
   checkBoard: function(){
@@ -55,7 +67,7 @@ app.Board = Backbone.View.extend({
     }, this);
   },
 
-  checkStatus: function(){
+  isWinner: function(){
     if (this.flippedCount == this.options.landCount) {
       this.youWin();
       return true;
