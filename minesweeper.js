@@ -6,15 +6,15 @@ app.Board = Backbone.View.extend({
   el: '.board',
 
   initialize: function(){
-    this.totalTileCount = this.options.rowLength * this.options.rowLength
-    this.setNeighboringTileData()
-    app.vent.on("tileClicked", this.tileClicked, this)
+    this.totalTileCount = this.options.rowLength * this.options.rowLength;
+    this.setNeighboringTileData();
+    app.vent.on("tileClicked", this.tileClicked, this);
   },
 
   tileClicked: function(cid){
     var tile = this.collection.get(cid)
     if (tile.get("state") == "flipped"){
-      return
+      return false;
     } else{
       tile.flip();
       if (tile.get("mineCount") == 0){
@@ -35,7 +35,7 @@ app.Board = Backbone.View.extend({
     var tileView = new app.TileView({
       model: tile
     });
-    this.$el.append(tileView.render().el)
+    this.$el.append(tileView.render().el);
   },
 
   setNeighboringTileData: function(){
@@ -61,16 +61,16 @@ app.Board = Backbone.View.extend({
         }
       }, this)
 
-      var neighboringInfo = new Backbone.Model({})
+      var neighboringInfo = new Backbone.Model({});
       var neighboringCids = [];
       _.each(neighboringTiles, function(neighboringTile){
-        neighboringInfo.set(_.keys(neighboringTile)[0], this.collection.at(_.values(neighboringTile)[0]).get("type"))
-        neighboringCids.push(this.collection.at(_.values(neighboringTile)[0]).cid)
+        neighboringInfo.set(_.keys(neighboringTile)[0], this.collection.at(_.values(neighboringTile)[0]).get("type"));
+        neighboringCids.push(this.collection.at(_.values(neighboringTile)[0]).cid);
       }, this)
 
-      neighboringInfo.set("neighboringCids", neighboringCids)
-      tile.set("neighboringInfo", neighboringInfo)
-      tile.set("mineCount", tile.mineCount())
+      neighboringInfo.set("neighboringCids", neighboringCids);
+      tile.set("neighboringInfo", neighboringInfo);
+      tile.set("mineCount", tile.mineCount());
     }, this)
   }
 })
@@ -85,7 +85,7 @@ app.TileView = Backbone.View.extend({
   },
 
   render: function(){
-    this.$el.html(this.template(this.model.toJSON()))
+    this.$el.html(this.template(this.model.toJSON()));
     return this;
   },
 
@@ -94,7 +94,7 @@ app.TileView = Backbone.View.extend({
   },
 
   triggerClick: function(){
-    app.vent.trigger("tileClicked", this.model.cid)
+    app.vent.trigger("tileClicked", this.model.cid);
   }
 })
 
@@ -105,7 +105,7 @@ app.Tile = Backbone.Model.extend({
 
   mineCount: function(){
     return _.filter(_.values(this.get("neighboringInfo").attributes), function(type){
-      return type == "mine"
+      return type == "mine";
     }).length
   },
 
@@ -122,15 +122,15 @@ app.tilesCollection = new Backbone.Collection();
 
 $(function(){
   _.times(54, function(){
-    app.tilesCollection.add(new app.Tile({type: "land"}))
+    app.tilesCollection.add(new app.Tile({type: "land"}));
   })
 
 
   _.times(10, function(){
-    app.tilesCollection.add(new app.Tile({type: "mine"}))
+    app.tilesCollection.add(new app.Tile({type: "mine"}));
   })
 
-  board = new app.Board({collection: app.tilesCollection.reset(app.tilesCollection.shuffle()), rowLength: 8})
+  board = new app.Board({collection: app.tilesCollection.reset(app.tilesCollection.shuffle()), rowLength: 8});
   board.render();
 })
 
